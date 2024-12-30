@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-
-class AuthController extends Controller
+use App\Http\Controllers\BaseController;
+class AuthController extends BaseController
 {
     public function register(Request $request)
     {
@@ -28,11 +28,12 @@ class AuthController extends Controller
             'password' => bcrypt($request->password),
             'role' => $request->role ?? 'user',
         ]);
-
-        return response()->json([
-            'token' => $user->createToken('MDPApp')->plainTextToken,
-            'user' => $user,
-        ], Response::HTTP_CREATED);
+        if($user) {
+            $success['token'] = $user->createToken('MDPApp')->plainTextToken;
+            $success['username'] = $user->name;
+            $success['email'] = $user->email;
+            return $this->sendSuccess($success, "Akun berhasil dibuat!", Response::HTTP_OK);
+        }
     }
 
     public function login(Request $request)
@@ -44,17 +45,17 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
-            $token = $user->createToken('MDPApp')->plainTextToken;
-
-            return response()->json([
-                'message' => 'Berhasil Login',
-                'token' => $token,
-                'name' => $user->name,
-                'role' => $user->role,
-            ], 200);
+            
+            $success['token'] = $user->createToken('MDPApp')->plainTextToken;
+            $success['username'] = $user->name;
+            $success['email'] = $user->email;
+            $success['role'] = $user->role;
+            return $this->sendSuccess($success, "Berhasil login, selamat datang {$user->name}!", Response::HTTP_OK);
+        } else {
+            return $this->sendError(null, "Maaf pengguna tidak dikenali!", Response::HTTP_OK);
         }
 
-        return response()->json(['error' => 'Unauthorized'], 401);
+        return $this->sendError(null, "Maaf pengguna tidak dikenali!", Response::HTTP_OK);
     }
 
 

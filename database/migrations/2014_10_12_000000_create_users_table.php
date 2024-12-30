@@ -14,16 +14,16 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('NoTelp')->nullable();;
+            $table->string('no_telp')->nullable();;
             $table->string('email')->unique();
-            $table->date('tanggalLahir')->nullable();;
-            $table->string('alamat Lengkap', 150)->nullable();;
+            $table->date('tanggal_Lahir')->nullable();;
+            $table->string('alamat_Lengkap', 150)->nullable();;
             $table->string('provinsi', 35)->nullable();;
             $table->string('kota', 35)->nullable();;
-            $table->string('RT/RW', 10)->nullable();;
-            $table->string('Kel/Desa')->nullable();;
-            $table->string('Kecamatan')->nullable();;
-            $table->string('KodePos', 10)->nullable();;
+            $table->string('rt_rw', 10)->nullable();;
+            $table->string('Kel_desa')->nullable();;
+            $table->string('kecamatan')->nullable();;
+            $table->string('kode_Pos', 10)->nullable();;
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('role', 10)->default('user');

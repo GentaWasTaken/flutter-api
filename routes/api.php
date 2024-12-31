@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\BarangController;
 use App\Http\Controllers\API\KategoriController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -45,9 +46,19 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Menghapus kategori berdasarkan ID
     Route::delete('/kategori/{id}', [KategoriController::class, 'destroy']);
+
+    // Menammpilkan barang
+    Route::get('/barang', [BarangController::class, 'index']);
+
+    // Menambahkan barang baru
+    Route::post('/barang', [BarangController::class, 'store']);
+
+    // Menampilkan barang berdasarkan ID
+    Route::get('/barang/{id}', [BarangController::class, 'show']);
+
+    // Memperbarui barang berdasarkan ID
+    Route::patch('/barang/{id}', [BarangController::class, 'update']);
+
+    // Menghapus barang berdasarkan ID
+    Route::delete('/barang/{id}', [BarangController::class, 'destroy']);
 });
-
-// // Route untuk User (hanya dapat diakses oleh pengguna dengan role user)
-// Route::middleware(['auth:sanctum', 'role:user'])->group(function () {
-
-// });

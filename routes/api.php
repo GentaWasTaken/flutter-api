@@ -26,4 +26,11 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::patch('/users/{id}', [AuthController::class, 'update']);
+    Route::get('/users', [AuthController::class, 'index']);
+});
+
+// Route untuk User (hanya dapat diakses oleh pengguna dengan role user)
+Route::middleware(['auth:sanctum', 'role:user'])->group(function () {
+    
+ 
 });

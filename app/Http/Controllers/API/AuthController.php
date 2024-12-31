@@ -11,8 +11,33 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\BaseController;
+
 class AuthController extends BaseController
 {
+    public function index()
+    {
+        $users = User::all();
+
+        if ($users->isEmpty()) {
+            return $this->sendError(
+                'Tidak ada pengguna yang ditemukan.',
+                [],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        $success = [
+            'users' => $users,
+            'count' => $users->count(),
+        ];
+
+        return $this->sendSuccess(
+            $success,
+            'Pengguna ditemukan.',
+            Response::HTTP_OK
+        );
+    }
+
     public function register(Request $request)
     {
         $request->validate([
@@ -28,7 +53,7 @@ class AuthController extends BaseController
             'password' => bcrypt($request->password),
             'role' => $request->role ?? 'user',
         ]);
-        if($user) {
+        if ($user) {
             $success['token'] = $user->createToken('MDPApp')->plainTextToken;
             $success['username'] = $user->name;
             $success['email'] = $user->email;
@@ -46,7 +71,7 @@ class AuthController extends BaseController
 
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
-            
+
             $success['token'] = $user->createToken('MDPApp')->plainTextToken;
             $success['username'] = $user->name;
             $success['email'] = $user->email;

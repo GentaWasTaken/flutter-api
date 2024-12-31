@@ -32,6 +32,7 @@ class AuthController extends BaseController
             $success['token'] = $user->createToken('MDPApp')->plainTextToken;
             $success['username'] = $user->name;
             $success['email'] = $user->email;
+            $success['id'] = $user->id;
             return $this->sendSuccess($success, "Akun berhasil dibuat!", Response::HTTP_OK);
         }
     }
@@ -50,6 +51,7 @@ class AuthController extends BaseController
             $success['username'] = $user->name;
             $success['email'] = $user->email;
             $success['role'] = $user->role;
+            $success['id'] = $user->id;
             return $this->sendSuccess($success, "Berhasil login, selamat datang {$user->name}!", Response::HTTP_OK);
         } else {
             return $this->sendError(null, "Maaf pengguna tidak dikenali!", Response::HTTP_OK);
@@ -120,11 +122,7 @@ class AuthController extends BaseController
 
         $user->save();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Pengguna berhasil diperbarui.',
-            'data' => $user
-        ], Response::HTTP_OK);
+        return $this->sendSuccess(null, "Akun berhasil di update!", Response::HTTP_OK);
     }
 
 
@@ -132,8 +130,6 @@ class AuthController extends BaseController
     {
         $request->user()->tokens()->delete();
 
-        return response()->json([
-            'message' => 'Berhasil Logout',
-        ], 200);
+        return $this->sendSuccess(null, "Berhasil Logout!", Response::HTTP_OK);
     }
 }

@@ -14,6 +14,7 @@ class BarangController extends BaseController
     public function index()
     {
         $barangs = Barang::with('kategori')->get();
+
         if ($barangs->isEmpty()) {
             return $this->sendError('Tidak ada barang yang ditemukan.', [], Response::HTTP_NOT_FOUND);
         }
@@ -23,7 +24,7 @@ class BarangController extends BaseController
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'Nama_Produk' => 'required|string|max:255',
             'Nama_Kategori' => 'required|exists:kategoris,id',
             'Harga' => 'required|numeric',
@@ -35,22 +36,12 @@ class BarangController extends BaseController
             'Foto_3' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        $foto1Path = $request->file('Foto_1') ? $request->file('Foto_1')->store('public/barang_images') : null;
-        $foto2Path = $request->file('Foto_2') ? $request->file('Foto_2')->store('public/barang_images') : null;
-        $foto3Path = $request->file('Foto_3') ? $request->file('Foto_3')->store('public/barang_images') : null;
+        $barangData = $validated;
+        $barangData['Foto_1'] = $this->uploadFile($request, 'Foto_1');
+        $barangData['Foto_2'] = $this->uploadFile($request, 'Foto_2');
+        $barangData['Foto_3'] = $this->uploadFile($request, 'Foto_3');
 
-
-        $barang = Barang::create([
-            'Nama_Produk' => $request->Nama_Produk,
-            'Nama_Kategori' => $request->Nama_Kategori,
-            'Harga' => $request->Harga,
-            'Stok' => $request->Stok,
-            'Berat' => $request->Berat,
-            'Deskripsi_Lengkap' => $request->Deskripsi_Lengkap,
-            'Foto_1' => $foto1Path,
-            'Foto_2' => $foto2Path,
-            'Foto_3' => $foto3Path,
-        ]);
+        $barang = Barang::create($barangData);
 
         return $this->sendSuccess($barang, 'Barang berhasil ditambahkan.', Response::HTTP_CREATED);
     }
@@ -63,50 +54,24 @@ class BarangController extends BaseController
             return $this->sendError('Barang tidak ditemukan.', [], Response::HTTP_NOT_FOUND);
         }
 
-        $request->validate([
-            'Nama_Produk' => 'required|string|max:255',
-            'Nama_Kategori' => 'required|exists:kategoris,id',
-            'Harga' => 'required|numeric',
-            'Stok' => 'required|integer',
-            'Berat' => 'required|numeric',
-            'Deskripsi_Lengkap' => 'required|string',
+        $validated = $request->validate([
+            'Nama_Produk' => 'string|max:255',
+            'Nama_Kategori' => 'exists:kategoris,id',
+            'Harga' => 'numeric',
+            'Stok' => 'integer',
+            'Berat' => 'numeric',
+            'Deskripsi_Lengkap' => 'string',
             'Foto_1' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'Foto_2' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'Foto_3' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        if ($request->file('Foto_1')) {
-            Storage::delete($barang->Foto_1);
-            $foto1Path = $request->file('Foto_1')->store('public/barang_images');
-        } else {
-            $foto1Path = $barang->Foto_1;
-        }
+        $barangData = $validated;
+        $barangData['Foto_1'] = $this->uploadFile($request, 'Foto_1', $barang->Foto_1);
+        $barangData['Foto_2'] = $this->uploadFile($request, 'Foto_2', $barang->Foto_2);
+        $barangData['Foto_3'] = $this->uploadFile($request, 'Foto_3', $barang->Foto_3);
 
-        if ($request->file('Foto_2')) {
-            Storage::delete($barang->Foto_2);
-            $foto2Path = $request->file('Foto_2')->store('public/barang_images');
-        } else {
-            $foto2Path = $barang->Foto_2;
-        }
-
-        if ($request->file('Foto_3')) {
-            Storage::delete($barang->Foto_3);
-            $foto3Path = $request->file('Foto_3')->store('public/barang_images');
-        } else {
-            $foto3Path = $barang->Foto_3;
-        }
-
-        $barang->update([
-            'Nama_Produk' => $request->Nama_Produk,
-            'Nama_Kategori' => $request->Nama_Kategori,
-            'Harga' => $request->Harga,
-            'Stok' => $request->Stok,
-            'Berat' => $request->Berat,
-            'Deskripsi_Lengkap' => $request->Deskripsi_Lengkap,
-            'Foto_1' => $foto1Path,
-            'Foto_2' => $foto2Path,
-            'Foto_3' => $foto3Path,
-        ]);
+        $barang->update($barangData);
 
         return $this->sendSuccess($barang, 'Barang berhasil diperbarui.', Response::HTTP_OK);
     }
@@ -122,7 +87,6 @@ class BarangController extends BaseController
         return $this->sendSuccess($barang, 'Barang ditemukan.', Response::HTTP_OK);
     }
 
-
     public function destroy($id)
     {
         $barang = Barang::find($id);
@@ -131,20 +95,31 @@ class BarangController extends BaseController
             return $this->sendError('Barang tidak ditemukan.', [], Response::HTTP_NOT_FOUND);
         }
 
-        if ($barang->Foto_1 && Storage::exists($barang->Foto_1)) {
-            Storage::delete($barang->Foto_1);
-        }
-
-        if ($barang->Foto_2 && Storage::exists($barang->Foto_2)) {
-            Storage::delete($barang->Foto_2);
-        }
-
-        if ($barang->Foto_3 && Storage::exists($barang->Foto_3)) {
-            Storage::delete($barang->Foto_3);
-        }
+        $this->deleteFile($barang->Foto_1);
+        $this->deleteFile($barang->Foto_2);
+        $this->deleteFile($barang->Foto_3);
 
         $barang->delete();
 
         return $this->sendSuccess([], 'Barang dan foto berhasil dihapus.', Response::HTTP_OK);
+    }
+
+    private function uploadFile(Request $request, $fieldName, $existingFilePath = null)
+    {
+        if ($request->hasFile($fieldName)) {
+            if ($existingFilePath) {
+                $this->deleteFile($existingFilePath);
+            }
+            return $request->file($fieldName)->store('public/barang_images');
+        }
+
+        return $existingFilePath;
+    }
+
+    private function deleteFile($filePath)
+    {
+        if ($filePath && Storage::exists($filePath)) {
+            Storage::delete($filePath);
+        }
     }
 }

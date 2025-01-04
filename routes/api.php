@@ -30,6 +30,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::patch('/users/{id}', [AuthController::class, 'update']);
+    Route::get('/users/{id}', [AuthController::class, 'show']);
     Route::get('/users', [AuthController::class, 'index']);
 
     // Menampilkan semua kategori

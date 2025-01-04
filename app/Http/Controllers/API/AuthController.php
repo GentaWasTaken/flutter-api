@@ -149,7 +149,16 @@ class AuthController extends BaseController
 
         return $this->sendSuccess(null, "Akun berhasil di update!", Response::HTTP_OK);
     }
+    public function show($id)
+    {
+        $user = User::find($id);
 
+        if (!$user) {
+            return $this->sendError('User tidak ditemukan.', [], Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->sendSuccess($user, 'User ditemukan.', Response::HTTP_OK);
+    }
 
     public function logout(Request $request)
     {

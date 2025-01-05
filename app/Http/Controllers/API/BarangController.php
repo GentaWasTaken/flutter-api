@@ -110,7 +110,7 @@ class BarangController extends BaseController
             if ($existingFilePath) {
                 $this->deleteFile($existingFilePath);
             }
-            return $request->file($fieldName)->store('public/barang_images');
+            return $request->file($fieldName)->store('public/images');
         }
 
         return $existingFilePath;
